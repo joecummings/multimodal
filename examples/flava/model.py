@@ -8,6 +8,7 @@ from typing import Any, Tuple
 
 import torch
 from pytorch_lightning import LightningModule
+from torch.distributed.fsdp import FullyShardedDataParallel
 from torchmultimodal.models.flava import (
     flava_model_for_classification,
     flava_model_for_pretraining,
@@ -61,13 +62,14 @@ class FLAVAPreTrainingLightningModule(LightningModule):
 
     def training_step(self, batch, batch_idx):
         output = self._step(batch, batch_idx)
-        losses = output.losses
+        # print(f"The output in lm is {output}")
+        # print(f"output keys are {output.keys()}")
+        losses = output["losses"]
         total_loss = 0
         for key in losses:
             if losses[key] is not None:
                 total_loss += losses[key]
                 self.log(f"train/losses/{key}", losses[key], prog_bar=True, logger=True)
-
         return total_loss
 
     def validation_step(self, batch, batch_idx):
@@ -92,7 +94,7 @@ class FLAVAPreTrainingLightningModule(LightningModule):
             required_embedding = "text"
         else:
             raise RuntimeError("Batch needs to have either or both 'image' and 'text'.")
-
+        # print(self.model)
         output = self.model(
             image=batch.get("image", None),
             image_for_codebook=batch.get("image_for_codebook", None),
@@ -115,6 +117,9 @@ class FLAVAPreTrainingLightningModule(LightningModule):
             self.warmup_steps,
             self.max_steps,
         )
+
+    def configure_sharded_model(self) -> None:
+        self.model = FullyShardedDataParallel(self.model)
 
 
 class FLAVAClassificationLightningModule(LightningModule):

@@ -532,7 +532,7 @@ class FLAVAForPreTraining(nn.Module, PretrainedMixin):
             skip_unmasked_mm_encoder=skip_unmasked_mm_encoder,
         )
 
-        return self.loss(
+        out = self.loss(
             image_sequence=flava_output.image.last_hidden_state,
             text_sequence=flava_output.text.last_hidden_state,
             image_masked_sequence=flava_output.image_masked.last_hidden_state,
@@ -545,6 +545,8 @@ class FLAVAForPreTraining(nn.Module, PretrainedMixin):
             mim_labels=image_labels,
             mlm_labels=mlm_labels,
         )
+        # print("in models flava output", out)
+        return out
 
 
 class FLAVAForClassification(nn.Module, PretrainedMixin):
