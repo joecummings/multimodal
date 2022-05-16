@@ -51,7 +51,7 @@ def main():
         adam_weight_decay=config.training.adam_weight_decay,
         adam_betas=config.training.adam_betas,
         warmup_steps=config.training.warmup_steps,
-        max_steps=config.training.lightning.max_steps,
+        max_steps=config.training.lightning_trainer.max_steps,
         **config.model,
     )
 

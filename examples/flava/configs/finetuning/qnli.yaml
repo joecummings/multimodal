@@ -2,7 +2,7 @@
 _target_: definitions.FLAVAArguments
 training:
   _target_: definitions.TrainingArguments
-  lightning:
+  lightning_trainer:
     max_steps: 33112
     gpus: -1
     progress_bar_refresh_rate: 50

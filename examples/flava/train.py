@@ -10,7 +10,7 @@ from definitions import FLAVAArguments
 from model import FLAVAPreTrainingLightningModule
 from omegaconf import OmegaConf
 from pytorch_lightning import seed_everything, Trainer
-from pytorch_lightning.callbacks import LearningRateMonitor
+from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from utils import build_config, build_datamodule_kwargs
 
 
@@ -41,21 +41,29 @@ def main():
     datamodule = MultiDataModule(datamodules)
 
     datamodule.setup("fit")
-    model = FLAVAPreTrainingLightningModule(
-        learning_rate=config.training.learning_rate,
-        adam_eps=config.training.adam_eps,
-        adam_weight_decay=config.training.adam_weight_decay,
-        adam_betas=config.training.adam_betas,
-        warmup_steps=config.training.warmup_steps,
-        max_steps=config.training.lightning.max_steps,
-        **config.model,
-    )
+    if config.training.lightning_load_from_checkpoint is None:
+        model = FLAVAPreTrainingLightningModule(
+            learning_rate=config.training.learning_rate,
+            adam_eps=config.training.adam_eps,
+            adam_weight_decay=config.training.adam_weight_decay,
+            adam_betas=config.training.adam_betas,
+            warmup_steps=config.training.warmup_steps,
+            max_steps=config.training.lightning_trainer.max_steps,
+            **config.model,
+        )
+    else:
+        model = FLAVAPreTrainingLightningModule.load_from_checkpoint(
+            config.training.lightning_load_from_checkpoint
+        )
 
     trainer = Trainer(
-        **OmegaConf.to_container(config.training.lightning),
+        **OmegaConf.to_container(config.training.lightning_trainer),
         callbacks=[
             LearningRateMonitor(logging_interval="step"),
             MultimodalEvalCallback(imagenet_datamodule=imagenet_datamodule),
+            ModelCheckpoint(
+                **OmegaConf.to_container(config.training.lightning_checkpoint)
+            ),
         ],
         strategy="ddp",
     )

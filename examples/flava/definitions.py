@@ -64,7 +64,9 @@ class TrainingDatasetsInfo:
 @dataclass
 class TrainingArguments:
     # Any lightning args to be pushed here
-    lightning: Dict[str, Any] = field(default=dict)
+    lightning_trainer: Dict[str, Any] = field(default=dict)
+    lightning_checkpoint: Dict[str, Any] = field(default=dict)
+    lightning_load_from_checkpoint: Optional[str] = None
     seed: int = -1
     batch_size: int = 8
     num_workers: int = 4
