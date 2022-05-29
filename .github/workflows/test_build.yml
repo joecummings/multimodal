@@ -1,9 +1,6 @@
 name: Test build workflow
-# on: workflow_dispatch
-on:
-  push:
-    branches: [ main ]
-  pull_request:
+on: 
+  workflow_dispatch:
 jobs:
   build_wheel:
     strategy:
